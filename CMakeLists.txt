@@ -25,6 +25,8 @@ option(ENABLE_TESTS "Enable unit testing" OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/mcu")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/tools")
+# Already in your CMakeLists.txt
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/lib/cmake")
 
 # Include MCU configuration
 include("families/${MCU_MODEL}")
@@ -37,6 +39,9 @@ endif()
 if(ENABLE_STATIC_ANALYSIS)
     include(static-analysis)
 endif()
+
+# Add libraries
+include(cmsis6)
 
 # Add include directories
 include_directories(
@@ -54,6 +59,11 @@ file(GLOB_RECURSE SOURCE_FILES
 
 # Define target
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
+
+# Link with your target
+target_link_libraries(${PROJECT_NAME}.elf PRIVATE 
+    cmsis6
+)
 
 # Link with linker script
 target_link_options(${PROJECT_NAME}.elf PRIVATE
