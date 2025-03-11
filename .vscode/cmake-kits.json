@@ -1,0 +1,10 @@
+[
+    {
+      "name": "GCC 14.2.1 arm-none-eabi",
+      "toolchainFile": "cmake/toolchains/arm-gcc.cmake"
+    },
+    {
+      "name": "Clang",
+      "toolchainFile": "cmake/toolchains/arm-clang.cmake"
+    }
+]

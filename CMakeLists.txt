@@ -40,14 +40,16 @@ if(ENABLE_STATIC_ANALYSIS)
     include(static-analysis)
 endif()
 
-# Add libraries
-include(cmsis6)
-
 # Add include directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/mcu
 )
+
+# Add libraries
+include(cmsis6)
+include(STM32CubeF4)
 
 # Add source files
 file(GLOB_RECURSE SOURCE_FILES
@@ -57,18 +59,31 @@ file(GLOB_RECURSE SOURCE_FILES
     "src/*.S"
 )
 
+# Startup file - todo make it dependent on the processor
+SET(MCU_STARTUP 
+    "mcu/startup_stm32f469xx.s"
+    "mcu/system_stm32f4xx.c")
+
 # Define target
-add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
+add_executable(${PROJECT_NAME}.elf 
+    ${SOURCE_FILES}
+    ${MCU_STARTUP}
+)
 
 # Link with your target
 target_link_libraries(${PROJECT_NAME}.elf PRIVATE 
     cmsis6
+    CMSIS_STM32F4xx
+    STM32F4xx_HAL
 )
 
 # Link with linker script
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     -T${CMAKE_SOURCE_DIR}/linker/${MCU_MODEL}.ld
 )
+
+# Debug
+set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_FLAGS "-v")
 
 # Post-build commands (generate .bin and .hex files)
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD

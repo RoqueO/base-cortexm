@@ -1,13 +1,70 @@
+/*
+******************************************************************************
+**
+
+**  File        : LinkerScript.ld
+**
+**  Author		: STM32CubeMX
+**
+**  Abstract    : Linker script for STM32F469IITx series
+**                2048Kbytes FLASH and 384Kbytes RAM
+**
+**                Set heap size, stack size and stack location according
+**                to application requirements.
+**
+**                Set memory bank area and size if external memory is used.
+**
+**  Target      : STMicroelectronics STM32
+**
+**  Distribution: The file is distributed “as is,” without any warranty
+**                of any kind.
+**
+*****************************************************************************
+** @attention
+**
+** <h2><center>&copy; COPYRIGHT(c) 2025 STMicroelectronics</center></h2>
+**
+** Redistribution and use in source and binary forms, with or without modification,
+** are permitted provided that the following conditions are met:
+**   1. Redistributions of source code must retain the above copyright notice,
+**      this list of conditions and the following disclaimer.
+**   2. Redistributions in binary form must reproduce the above copyright notice,
+**      this list of conditions and the following disclaimer in the documentation
+**      and/or other materials provided with the distribution.
+**   3. Neither the name of STMicroelectronics nor the names of its contributors
+**      may be used to endorse or promote products derived from this software
+**      without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+** DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+** FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+*****************************************************************************
+*/
+
+/* Specify the memory areas */
+MEMORY
+{
+RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 320K
+CCMRAM (xrw)      : ORIGIN = 0x10000000, LENGTH = 64K
+FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K
+}
+
 /* Entry Point */
 ENTRY(Reset_Handler)
 
-/* Memory configuration for STM32F469 */
-MEMORY
-{
-  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 2048K
-  RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 384K
-  CCMRAM (rwx) : ORIGIN = 0x10000000, LENGTH = 64K
-}
+/* Highest address of the user mode stack */
+_estack = ORIGIN(RAM) + LENGTH(RAM);    /* end of RAM */
+/* Generate a link error if heap and stack don't fit into RAM */
+_Min_Heap_Size = 0x200;      /* required amount of heap  */
+_Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Define output sections */
 SECTIONS
@@ -28,6 +85,7 @@ SECTIONS
     *(.text*)          /* .text* sections (code) */
     *(.glue_7)         /* glue arm to thumb code */
     *(.glue_7t)        /* glue thumb to arm code */
+    *(.eh_frame)
 
     KEEP (*(.init))
     KEEP (*(.fini))
@@ -45,56 +103,93 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
-  .ARM : {
+  .ARM.extab : /* READONLY keyword removed as it's not supported in the current toolchain */
+  {
+    . = ALIGN(4);
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
+    . = ALIGN(4);
+  } >FLASH
+
+  .ARM : /* READONLY keyword removed as it's not supported in the current toolchain */
+  {
+    . = ALIGN(4);
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
+    . = ALIGN(4);
   } >FLASH
 
-  .preinit_array     :
+  .preinit_array : /* READONLY keyword removed as it's not supported in the current toolchain */
   {
+    . = ALIGN(4);
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
+    . = ALIGN(4);
   } >FLASH
-  
-  .init_array :
+
+  .init_array : /* READONLY keyword removed as it's not supported in the current toolchain */
   {
+    . = ALIGN(4);
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
+    . = ALIGN(4);
   } >FLASH
-  
-  .fini_array :
+
+  .fini_array : /* READONLY keyword removed as it's not supported in the current toolchain */
   {
+    . = ALIGN(4);
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
+    . = ALIGN(4);
   } >FLASH
 
-  /* Used by the startup to initialize data */
+  /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
-  .data : 
+  .data :
   {
     . = ALIGN(4);
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
+    *(.RamFunc)        /* .RamFunc sections */
+    *(.RamFunc*)       /* .RamFunc* sections */
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH
 
+  _siccmram = LOADADDR(.ccmram);
+
+  /* CCM-RAM section
+  *
+  * IMPORTANT NOTE!
+  * If initialized variables will be placed in this section,
+  * the startup code needs to be modified to copy the init-values.
+  */
+  .ccmram :
+  {
+    . = ALIGN(4);
+    _sccmram = .;       /* create a global symbol at ccmram start */
+    *(.ccmram)
+    *(.ccmram*)
+
+    . = ALIGN(4);
+    _eccmram = .;       /* create a global symbol at ccmram end */
+  } >CCMRAM AT> FLASH
+
+
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss :
   {
-    /* This is used by the startup in order to initialize the .bss section */
+    /* This is used by the startup in order to initialize the .bss secion */
     _sbss = .;         /* define a global symbol at bss start */
     __bss_start__ = _sbss;
     *(.bss)
@@ -112,24 +207,10 @@ SECTIONS
     . = ALIGN(8);
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
-    . = . + 0x1000;
+    . = . + _Min_Heap_Size;
+    . = . + _Min_Stack_Size;
     . = ALIGN(8);
-    PROVIDE ( _stack_limit = . );
-    . = . + 0x1000;
-    PROVIDE ( _stack_top = . );
   } >RAM
-
-  /* CCM-RAM section */
-  .ccmram (NOLOAD) :
-  {
-    . = ALIGN(4);
-    _sccmram = .;      /* create a global symbol at ccmram start */
-    *(.ccmram)
-    *(.ccmram*)
-    
-    . = ALIGN(4);
-    _eccmram = .;      /* create a global symbol at ccmram end */
-  } >CCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
@@ -138,6 +219,7 @@ SECTIONS
     libm.a ( * )
     libgcc.a ( * )
   }
-
-  .ARM.attributes 0 : { *(.ARM.attributes) }
 }
+
+
+

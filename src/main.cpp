@@ -4,6 +4,7 @@
  */
 
  #include "stm32f4xx_hal.h"
+ #include "stm32f469xx.h"
 
  /**
   * @brief System Clock Configuration
@@ -11,8 +12,8 @@
  void SystemClock_Config(void)
  {
      // Configure system clock for STM32F469
-     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+     RCC_OscInitTypeDef RCC_OscInitStruct;
+     RCC_ClkInitTypeDef RCC_ClkInitStruct;
  
      // Configure the main internal regulator output voltage
      __HAL_RCC_PWR_CLK_ENABLE();
@@ -48,7 +49,7 @@
  static void GPIO_Init(void)
  {
      // Example: Initialize LED GPIO (adjust for your specific board)
-     GPIO_InitTypeDef GPIO_InitStruct = {0};
+     GPIO_InitTypeDef GPIO_InitStruct;
      
      // Enable GPIO clock
      __HAL_RCC_GPIOG_CLK_ENABLE();
