@@ -6,5 +6,11 @@
     {
       "name": "Clang",
       "toolchainFile": "cmake/toolchains/arm-clang.cmake"
+    },
+    {
+      "name": "Both Toolchains",
+      "cmakeSettings": {
+        "MULTI_TOOLCHAIN_BUILD": "ON"
+      }
     }
 ]

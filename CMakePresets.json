@@ -1,0 +1,41 @@
+{
+    "version": 3,
+    "configurePresets": [
+      {
+        "name": "gcc",
+        "generator": "Unix Makefiles",
+        "binaryDir": "${sourceDir}/build-gcc",
+        "cacheVariables": {
+          "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm-gcc.cmake",
+          "CMAKE_BUILD_TYPE":"Debug"
+        }
+      },
+      {
+        "name": "clang",
+        "generator": "Unix Makefiles",
+        "binaryDir": "${sourceDir}/build-clang",
+        "cacheVariables": {
+          "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm-clang.cmake",
+          "CMAKE_BUILD_TYPE":"Debug"
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "all-toolchains",
+        "configurePreset": "gcc",
+        "targets": ["build-all"]
+      },
+      {
+        "name": "gcc",
+        "configurePreset": "gcc",
+        "jobs": 16
+      },
+      {
+        "name": "clang",
+        "configurePreset": "clang",
+        "jobs": 16
+      }
+
+    ]
+  }

@@ -92,3 +92,22 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_SIZE} --format=berkeley ${PROJECT_NAME}.elf
     COMMENT "Generating binary and hex files"
 )
+
+
+# add_custom_target(build-all
+#     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/build-gcc --parallel 16
+#     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/build-clang --parallel 16
+#     COMMENT "Building with both GCC and Clang toolchains"
+# )
+
+add_custom_target(build-all
+    # Configure and build GCC
+    COMMAND ${CMAKE_COMMAND} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build-gcc -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/toolchains/arm-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/build-gcc --parallel 16
+    
+    # Configure and build Clang
+    COMMAND ${CMAKE_COMMAND} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build-clang -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/toolchains/arm-clang.cmake -DCMAKE_BUILD_TYPE=Debug
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/build-clang --parallel 16
+    
+    COMMENT "Building with both GCC and Clang toolchains"
+)

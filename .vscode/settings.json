@@ -1,0 +1,21 @@
+{
+    "cmake.useCMakePresets":"never",
+    "cmake.buildDirectory": "${workspaceFolder}/build-gcc",
+    "cmake.buildTask": true,
+    "cmake.defaultVariants": {
+        "buildType": {
+            "default": "debug",
+            "description": "The build type.",
+            "choices": {
+                "debug": {
+                    "short": "Debug",
+                    "long": "Debug build",
+                    "buildType": "Debug"
+                }
+            }
+        }
+    },
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "${workspaceFolder}/cmake/toolchains/arm-gcc.cmake"
+    }
+}
