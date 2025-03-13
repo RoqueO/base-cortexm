@@ -36,6 +36,5 @@
         "configurePreset": "clang",
         "jobs": 16
       }
-
     ]
   }
